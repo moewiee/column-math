@@ -1,0 +1,1131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Math Column Practice</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Roboto+Mono:wght@500;700&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --bg-1: #fef3c7;
+    --bg-2: #ddd6fe;
+    --bg-3: #bae6fd;
+    --card: #ffffff;
+    --ink: #1e293b;
+    --muted: #64748b;
+    --primary: #6366f1;
+    --primary-dark: #4f46e5;
+    --accent: #f59e0b;
+    --pink: #ec4899;
+    --good: #10b981;
+    --bad: #ef4444;
+    --border: #e5e7eb;
+    --shadow: 0 10px 30px rgba(99, 102, 241, 0.15);
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: 'Fredoka', system-ui, -apple-system, sans-serif;
+    color: var(--ink);
+    min-height: 100vh;
+    background:
+      radial-gradient(1200px 800px at 10% 0%, var(--bg-1) 0%, transparent 60%),
+      radial-gradient(1000px 700px at 90% 10%, var(--bg-3) 0%, transparent 55%),
+      radial-gradient(900px 600px at 50% 100%, var(--bg-2) 0%, transparent 55%),
+      #fafafa;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+  }
+  .app {
+    width: 100%;
+    max-width: 720px;
+    background: var(--card);
+    border-radius: 28px;
+    box-shadow: var(--shadow);
+    padding: 32px;
+    position: relative;
+    overflow: hidden;
+  }
+  .app::before {
+    content: "";
+    position: absolute;
+    top: -40px; right: -40px;
+    width: 160px; height: 160px;
+    background: radial-gradient(circle, #fde68a 0%, transparent 70%);
+    border-radius: 50%;
+    pointer-events: none;
+  }
+  h1 {
+    margin: 0 0 4px;
+    font-size: 36px;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+    text-align: center;
+  }
+  h1 .emoji { display: inline-block; transform: translateY(-2px); }
+  .subtitle {
+    text-align: center;
+    color: var(--muted);
+    margin-bottom: 28px;
+    font-size: 16px;
+  }
+  .section-label {
+    font-size: 14px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--muted);
+    margin: 18px 0 10px;
+  }
+
+  .count-row { display: flex; gap: 12px; flex-wrap: wrap; }
+  .chip {
+    appearance: none;
+    border: 2px solid var(--border);
+    background: #fff;
+    border-radius: 999px;
+    padding: 14px 28px;
+    font-family: inherit;
+    font-size: 18px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    flex: 1;
+    min-width: 80px;
+  }
+  .chip:hover { border-color: var(--primary); }
+  .chip.active {
+    background: var(--primary);
+    color: white;
+    border-color: var(--primary);
+  }
+
+  .btn-primary {
+    margin-top: 16px;
+    width: 100%;
+    padding: 18px;
+    border: none;
+    border-radius: 18px;
+    background: linear-gradient(135deg, var(--primary) 0%, var(--pink) 100%);
+    color: white;
+    font-family: inherit;
+    font-size: 20px;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: 0 8px 20px rgba(99,102,241,0.35);
+    transition: transform 0.1s ease;
+  }
+  .btn-primary:hover { transform: translateY(-2px); }
+  .btn-primary:active { transform: translateY(0); }
+  .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+  .btn-secondary {
+    margin-top: 12px;
+    width: 100%;
+    padding: 14px;
+    border: 2px solid var(--border);
+    border-radius: 18px;
+    background: white;
+    color: var(--ink);
+    font-family: inherit;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+  .btn-secondary:hover { border-color: var(--primary); color: var(--primary); }
+
+  /* Practice screen */
+  .topbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+  }
+  .progress-text {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--muted);
+  }
+  .phase-pill {
+    background: #eef2ff;
+    color: var(--primary-dark);
+    padding: 6px 14px;
+    border-radius: 999px;
+    font-weight: 600;
+    font-size: 14px;
+  }
+  .progress-bar {
+    height: 8px;
+    background: #e5e7eb;
+    border-radius: 999px;
+    overflow: hidden;
+    margin-bottom: 20px;
+  }
+  .progress-bar > div {
+    height: 100%;
+    background: linear-gradient(90deg, var(--primary), var(--pink));
+    transition: width 0.3s ease;
+  }
+
+  .problem-card {
+    background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+    border-radius: 24px;
+    padding: 28px 20px 20px;
+    border: 3px dashed #fbbf24;
+  }
+  .column {
+    font-family: 'Roboto Mono', ui-monospace, monospace;
+    font-size: 52px;
+    font-weight: 700;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    line-height: 1.1;
+    user-select: none;
+  }
+  .column .row {
+    display: flex;
+    gap: 6px;
+    justify-content: flex-end;
+    align-items: center;
+  }
+  .column .op {
+    margin-right: 12px;
+    color: var(--accent);
+    font-size: 52px;
+    width: 40px;
+    text-align: center;
+  }
+  .column .digit {
+    width: 60px;
+    text-align: center;
+    color: var(--ink);
+  }
+  .column .digit.faded { color: #cbd5e1; }
+  .hline {
+    height: 5px;
+    background: var(--ink);
+    border-radius: 4px;
+    margin: 8px 0;
+    width: 100%;
+  }
+  .answer-row {
+    display: flex;
+    gap: 6px;
+    justify-content: flex-end;
+    align-items: center;
+    margin-top: 4px;
+  }
+  .answer-row .op { visibility: hidden; }
+  .answer-input {
+    width: 60px;
+    height: 74px;
+    border: 3px solid #c4b5fd;
+    border-radius: 14px;
+    background: white;
+    text-align: center;
+    font-family: 'Roboto Mono', ui-monospace, monospace;
+    font-size: 44px;
+    font-weight: 700;
+    color: var(--primary-dark);
+    outline: none;
+    transition: all 0.15s ease;
+    padding: 0;
+    caret-color: transparent;
+  }
+  .answer-input:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 4px rgba(99,102,241,0.2);
+  }
+
+  /* Numpad */
+  .numpad {
+    margin-top: 18px;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+  }
+  .numpad button {
+    appearance: none;
+    border: 2px solid var(--border);
+    background: white;
+    border-radius: 16px;
+    padding: 18px 0;
+    font-family: 'Fredoka', sans-serif;
+    font-size: 28px;
+    font-weight: 600;
+    color: var(--ink);
+    cursor: pointer;
+    transition: transform 0.08s ease, background 0.1s, border-color 0.1s;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .numpad button:hover { border-color: var(--primary); }
+  .numpad button:active {
+    transform: scale(0.96);
+    background: #eef2ff;
+    border-color: var(--primary);
+  }
+  .numpad button.np-back {
+    background: #fef2f2;
+    border-color: #fecaca;
+    color: var(--bad);
+    font-size: 26px;
+  }
+  .numpad button.np-submit {
+    background: linear-gradient(135deg, var(--primary) 0%, var(--pink) 100%);
+    color: white;
+    border-color: transparent;
+    box-shadow: 0 4px 10px rgba(99,102,241,0.3);
+    font-size: 26px;
+  }
+
+  .quit-row { margin-top: 14px; }
+
+  /* Results / review */
+  .result-hero {
+    text-align: center;
+    padding: 16px 0 20px;
+  }
+  .result-hero .score {
+    font-size: 76px;
+    font-weight: 700;
+    line-height: 1;
+    background: linear-gradient(135deg, var(--primary), var(--pink));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .result-hero .total {
+    font-size: 22px;
+    color: var(--muted);
+    margin-top: 8px;
+  }
+  .result-hero .message {
+    margin-top: 4px;
+    margin-bottom: 18px;
+    font-size: 22px;
+    font-weight: 600;
+  }
+  .score-breakdown {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+  }
+  .try-block {
+    background: #f8fafc;
+    border: 2px solid var(--border);
+    border-radius: 18px;
+    padding: 14px 20px;
+    min-width: 130px;
+  }
+  .try-block:last-child {
+    background: linear-gradient(135deg, #eef2ff 0%, #fce7f3 100%);
+    border-color: transparent;
+  }
+  .try-label {
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--muted);
+    font-weight: 600;
+  }
+  .try-score {
+    font-size: 36px;
+    font-weight: 700;
+    line-height: 1.1;
+    margin-top: 4px;
+    background: linear-gradient(135deg, var(--primary), var(--pink));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .try-pct {
+    font-size: 14px;
+    color: var(--muted);
+    font-weight: 600;
+  }
+
+  .missed-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 10px;
+    margin-top: 8px;
+  }
+  .missed-card {
+    background: #fef2f2;
+    border: 2px solid #fecaca;
+    border-radius: 14px;
+    padding: 10px 12px;
+    font-family: 'Roboto Mono', ui-monospace, monospace;
+    font-size: 18px;
+    font-weight: 600;
+    text-align: center;
+    color: var(--ink);
+  }
+
+  /* Final review */
+  .review-item {
+    margin-top: 14px;
+    border: 2px solid #e5e7eb;
+    border-radius: 18px;
+    padding: 16px;
+    background: #fafafa;
+  }
+  .review-item.fixed { border-color: #bbf7d0; background: #f0fdf4; }
+  .review-item.still-wrong { border-color: #fecaca; background: #fef2f2; }
+  .review-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+    font-weight: 600;
+    color: var(--muted);
+    font-size: 15px;
+  }
+  .review-head .tag {
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 13px;
+  }
+  .review-head .tag.good { background: #d1fae5; color: var(--good); }
+  .review-head .tag.bad { background: #fee2e2; color: var(--bad); }
+  .attempts {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-bottom: 10px;
+  }
+  .attempt {
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 8px 14px;
+    font-size: 15px;
+  }
+  .attempt .label {
+    font-size: 11px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-weight: 600;
+    display: block;
+  }
+  .attempt .value { font-family: 'Roboto Mono', ui-monospace, monospace; font-weight: 700; font-size: 18px; }
+  .attempt .value.good { color: var(--good); }
+  .attempt .value.bad { color: var(--bad); }
+  .review-cols {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-top: 8px;
+  }
+  .review-col {
+    background: white;
+    border-radius: 14px;
+    padding: 12px 18px;
+    border: 1px solid var(--border);
+  }
+  .review-col .label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--muted);
+    margin-bottom: 6px;
+    text-align: center;
+    font-weight: 600;
+  }
+  .mini-column {
+    font-family: 'Roboto Mono', ui-monospace, monospace;
+    font-size: 24px;
+    font-weight: 700;
+    text-align: right;
+    line-height: 1.15;
+    white-space: pre;
+  }
+  .mini-column .carry {
+    font-size: 13px;
+    color: var(--accent);
+    height: 14px;
+  }
+  .mini-column .correct-answer { color: var(--good); }
+  .mini-column .hline-mini {
+    border-bottom: 3px solid var(--ink);
+    margin: 4px 0;
+  }
+  .step-explain {
+    font-size: 14px;
+    color: var(--muted);
+    margin-top: 10px;
+    line-height: 1.6;
+    background: white;
+    padding: 10px 12px;
+    border-radius: 10px;
+  }
+
+  .hidden { display: none !important; }
+
+  @media (max-width: 520px) {
+    .app { padding: 20px; border-radius: 22px; }
+    h1 { font-size: 26px; }
+    .column { font-size: 40px; }
+    .column .digit { width: 46px; }
+    .answer-input { width: 46px; height: 60px; font-size: 34px; }
+    .column .op { font-size: 40px; width: 28px; }
+    .numpad button { font-size: 24px; padding: 14px 0; }
+  }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- HOME -->
+  <section id="screen-home">
+    <h1><span class="emoji">🧮</span> Math Column Practice</h1>
+    <p class="subtitle">Add and subtract — one column at a time!</p>
+
+    <div class="section-label">How many questions?</div>
+    <div class="count-row" id="count-row">
+      <button class="chip" data-count="25">25</button>
+      <button class="chip" data-count="50">50</button>
+      <button class="chip" data-count="100">100</button>
+    </div>
+
+    <button id="btn-start" class="btn-primary" disabled>Let's go! 🚀</button>
+  </section>
+
+  <!-- PRACTICE / REDO -->
+  <section id="screen-practice" class="hidden">
+    <div class="topbar">
+      <span class="progress-text" id="progress-text">Question 1 of 25</span>
+      <span class="phase-pill" id="phase-pill">Practice</span>
+    </div>
+    <div class="progress-bar"><div id="progress-fill" style="width: 0%"></div></div>
+
+    <div class="problem-card">
+      <div class="column" id="problem-display"></div>
+    </div>
+
+    <div class="numpad" id="numpad">
+      <button data-key="7">7</button>
+      <button data-key="8">8</button>
+      <button data-key="9">9</button>
+      <button data-key="4">4</button>
+      <button data-key="5">5</button>
+      <button data-key="6">6</button>
+      <button data-key="1">1</button>
+      <button data-key="2">2</button>
+      <button data-key="3">3</button>
+      <button class="np-back" data-key="back">⌫</button>
+      <button data-key="0">0</button>
+      <button class="np-submit" data-key="submit">✓</button>
+    </div>
+
+    <button id="btn-quit" class="btn-secondary quit-row">Back to home</button>
+  </section>
+
+  <!-- RESULTS PHASE 1: score + missed list + redo button -->
+  <section id="screen-results1" class="hidden">
+    <div class="result-hero">
+      <div class="score" id="r1-score">0/0</div>
+      <div class="total" id="r1-percent">0% correct</div>
+      <div class="message" id="r1-message"></div>
+    </div>
+
+    <div id="r1-missed-wrap">
+      <div class="section-label" id="r1-missed-label">Questions to try again</div>
+      <div class="missed-list" id="r1-missed-list"></div>
+    </div>
+
+    <button id="btn-redo" class="btn-primary">Try them again 🔄</button>
+    <button id="btn-home1" class="btn-secondary">Back to home</button>
+  </section>
+
+  <!-- FINAL REVIEW -->
+  <section id="screen-final" class="hidden">
+    <div class="result-hero">
+      <div class="message" id="rf-message"></div>
+      <div class="score-breakdown">
+        <div class="try-block">
+          <div class="try-label">1st try</div>
+          <div class="try-score" id="rf-first">0/0</div>
+          <div class="try-pct" id="rf-first-pct">0%</div>
+        </div>
+        <div class="try-block">
+          <div class="try-label">2nd try</div>
+          <div class="try-score" id="rf-second">0/0</div>
+          <div class="try-pct" id="rf-second-pct">0%</div>
+        </div>
+      </div>
+    </div>
+
+    <div id="rf-review-wrap">
+      <div class="section-label" id="rf-review-label">Still need practice</div>
+      <div id="rf-review-list"></div>
+    </div>
+
+    <button id="btn-again" class="btn-primary">Play again 🔁</button>
+    <button id="btn-home2" class="btn-secondary">Back to home</button>
+  </section>
+
+</div>
+
+<script>
+"use strict";
+
+const state = {
+  count: null,
+  questions: [],      // [{a,b,op,digits,answer}]
+  answers: [],        // first-round answers (null if blank)
+  redoAnswers: {},    // {index: number}
+  current: 0,         // current pointer within active queue
+  phase: 'practice',  // 'practice' | 'redo'
+  wrongIndices: [],   // indices into questions[] that were wrong in round 1
+  focusedInput: null,
+};
+
+// ---------- Generation ----------
+function randInt(min, max) {
+  return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+
+function randNumOfDigits(d) {
+  // d=2 → [10,99], d=3 → [100,999]
+  return randInt(10 ** (d - 1), 10 ** d - 1);
+}
+
+function genOne() {
+  // distribution: 40% both 2-digit, 40% both 3-digit, 20% mixed
+  const r = Math.random();
+  let dA, dB;
+  if (r < 0.40)      { dA = 2; dB = 2; }
+  else if (r < 0.80) { dA = 3; dB = 3; }
+  else {
+    // mixed: one 2-digit, one 3-digit (random order)
+    if (Math.random() < 0.5) { dA = 3; dB = 2; } else { dA = 2; dB = 3; }
+  }
+  const op = Math.random() < 0.5 ? "+" : "-";
+  let a = randNumOfDigits(dA);
+  let b = randNumOfDigits(dB);
+  if (op === "-" && a < b) [a, b] = [b, a];
+  const digits = Math.max(dA, dB); // column width for operands
+  const answer = op === "+" ? a + b : a - b;
+  return { a, b, op, digits, answer };
+}
+
+function generateQuestions(count) {
+  const seen = new Set();
+  const out = [];
+  let safety = 0;
+  while (out.length < count && safety < count * 30) {
+    safety++;
+    const q = genOne();
+    const key = `${q.a}${q.op}${q.b}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    out.push(q);
+  }
+  return out;
+}
+
+// ---------- Rendering ----------
+function digitsOf(n, width) {
+  return String(n).padStart(width, " ").split("");
+}
+function answerWidth(q) {
+  return q.op === "+" ? q.digits + 1 : q.digits;
+}
+
+function renderProblem(q) {
+  const display = document.getElementById("problem-display");
+  display.innerHTML = "";
+
+  const width = answerWidth(q);
+  const aDigits = digitsOf(q.a, width);
+  const bDigits = digitsOf(q.b, width);
+
+  const rowA = document.createElement("div");
+  rowA.className = "row";
+  rowA.appendChild(spanOp(""));
+  aDigits.forEach(d => rowA.appendChild(spanDigit(d)));
+  display.appendChild(rowA);
+
+  const rowB = document.createElement("div");
+  rowB.className = "row";
+  rowB.appendChild(spanOp(q.op));
+  bDigits.forEach(d => rowB.appendChild(spanDigit(d)));
+  display.appendChild(rowB);
+
+  const hline = document.createElement("div");
+  hline.className = "hline";
+  display.appendChild(hline);
+
+  const ansRow = document.createElement("div");
+  ansRow.className = "answer-row";
+  ansRow.appendChild(spanOp(""));
+  const inputs = [];
+  for (let i = 0; i < width; i++) {
+    const inp = document.createElement("input");
+    inp.type = "text";
+    inp.inputMode = "none"; // hide mobile keyboard; we use the on-screen numpad
+    inp.maxLength = 1;
+    inp.className = "answer-input";
+    inp.dataset.pos = String(i);
+    inp.readOnly = true; // input only via numpad; prevents native keyboard on mobile
+    inp.addEventListener("focus", () => { state.focusedInput = inp; });
+    inp.addEventListener("click", () => { state.focusedInput = inp; });
+    inp.addEventListener("keydown", onPhysicalKeydown);
+    ansRow.appendChild(inp);
+    inputs.push(inp);
+  }
+  display.appendChild(ansRow);
+
+  setTimeout(() => { inputs[inputs.length - 1].focus(); state.focusedInput = inputs[inputs.length - 1]; }, 30);
+}
+
+function spanOp(text) {
+  const s = document.createElement("span");
+  s.className = "op";
+  s.textContent = text;
+  return s;
+}
+function spanDigit(ch) {
+  const s = document.createElement("span");
+  s.className = "digit" + (ch === " " ? " faded" : "");
+  s.textContent = ch === " " ? "·" : ch;
+  return s;
+}
+
+function currentInputs() {
+  return Array.from(document.querySelectorAll(".answer-input"));
+}
+
+// Numpad input — also handles physical keyboard via routing
+function typeDigit(d) {
+  const inputs = currentInputs();
+  let target = state.focusedInput && inputs.includes(state.focusedInput) ? state.focusedInput : null;
+  if (!target) {
+    // find rightmost empty, else rightmost
+    target = inputs.slice().reverse().find(i => !i.value) || inputs[inputs.length - 1];
+  }
+  target.value = String(d);
+  const idx = inputs.indexOf(target);
+  if (idx > 0) {
+    inputs[idx - 1].focus();
+    state.focusedInput = inputs[idx - 1];
+  } else {
+    target.blur();
+    state.focusedInput = target;
+  }
+}
+
+function backspace() {
+  const inputs = currentInputs();
+  let target = state.focusedInput && inputs.includes(state.focusedInput) ? state.focusedInput : inputs[0];
+  const idx = inputs.indexOf(target);
+  if (target.value) {
+    target.value = "";
+  } else if (idx < inputs.length - 1) {
+    inputs[idx + 1].focus();
+    inputs[idx + 1].value = "";
+    state.focusedInput = inputs[idx + 1];
+  }
+}
+
+function onPhysicalKeydown(e) {
+  if (/^[0-9]$/.test(e.key)) { e.preventDefault(); typeDigit(e.key); return; }
+  if (e.key === "Backspace") { e.preventDefault(); backspace(); return; }
+  if (e.key === "Enter") { e.preventDefault(); submitAnswer(); return; }
+  if (e.key === "ArrowLeft" || e.key === "ArrowRight") {
+    e.preventDefault();
+    const inputs = currentInputs();
+    const idx = inputs.indexOf(e.target);
+    const next = e.key === "ArrowLeft" ? idx - 1 : idx + 1;
+    if (next >= 0 && next < inputs.length) { inputs[next].focus(); state.focusedInput = inputs[next]; }
+    return;
+  }
+  if (e.key.length === 1) e.preventDefault();
+}
+
+// Wire numpad
+document.getElementById("numpad").addEventListener("click", (e) => {
+  const btn = e.target.closest("button");
+  if (!btn) return;
+  const k = btn.dataset.key;
+  if (k === "back") backspace();
+  else if (k === "submit") submitAnswer();
+  else typeDigit(k);
+});
+
+// ---------- Answer reading & submission ----------
+function readAnswer() {
+  const inputs = currentInputs();
+  const vals = inputs.map(i => i.value);
+  if (vals.every(v => v === "")) return null;
+  const str = vals.map(v => v === "" ? "0" : v).join("");
+  const n = parseInt(str, 10);
+  return Number.isNaN(n) ? null : n;
+}
+
+function activeIndex() {
+  // index into state.questions for the question currently displayed
+  if (state.phase === 'practice') return state.current;
+  return state.wrongIndices[state.current];
+}
+
+function activeQuestion() {
+  return state.questions[activeIndex()];
+}
+
+function activeQueueLength() {
+  return state.phase === 'practice' ? state.questions.length : state.wrongIndices.length;
+}
+
+function submitAnswer() {
+  const ans = readAnswer();
+  const qIdx = activeIndex();
+  if (state.phase === 'practice') {
+    state.answers[qIdx] = ans;
+  } else {
+    state.redoAnswers[qIdx] = ans;
+  }
+  state.current++;
+  if (state.current >= activeQueueLength()) {
+    if (state.phase === 'practice') showResults1();
+    else showFinal();
+    return;
+  }
+  renderCurrent();
+}
+
+function renderCurrent() {
+  const total = activeQueueLength();
+  document.getElementById("progress-text").textContent = `Question ${state.current + 1} of ${total}`;
+  document.getElementById("progress-fill").style.width = `${(state.current / total) * 100}%`;
+  document.getElementById("phase-pill").textContent = state.phase === 'practice' ? "Practice" : "Try again";
+  renderProblem(activeQuestion());
+}
+
+// ---------- Results phase 1 ----------
+function computeWrongIndices() {
+  state.wrongIndices = [];
+  state.questions.forEach((q, i) => {
+    if (state.answers[i] !== q.answer) state.wrongIndices.push(i);
+  });
+}
+
+function showResults1() {
+  document.getElementById("progress-fill").style.width = "100%";
+  document.getElementById("screen-practice").classList.add("hidden");
+  document.getElementById("screen-results1").classList.remove("hidden");
+
+  computeWrongIndices();
+  const total = state.questions.length;
+  const correct = total - state.wrongIndices.length;
+  const pct = Math.round((correct / total) * 100);
+
+  document.getElementById("r1-score").textContent = `${correct}/${total}`;
+  document.getElementById("r1-percent").textContent = `${pct}% correct`;
+
+  const msg = document.getElementById("r1-message");
+  if (pct === 100)      msg.textContent = "🏆 Perfect! You're a math star!";
+  else if (pct >= 80)   msg.textContent = "🌟 Excellent work!";
+  else if (pct >= 60)   msg.textContent = "💪 Great effort!";
+  else                  msg.textContent = "🌱 Nice try — let's review!";
+
+  const list = document.getElementById("r1-missed-list");
+  const label = document.getElementById("r1-missed-label");
+  const wrap = document.getElementById("r1-missed-wrap");
+  const redoBtn = document.getElementById("btn-redo");
+  const skipBtn = document.getElementById("btn-skip-redo");
+
+  list.innerHTML = "";
+  if (state.wrongIndices.length === 0) {
+    wrap.classList.add("hidden");
+    redoBtn.classList.add("hidden");
+    skipBtn.classList.add("hidden");
+  } else {
+    wrap.classList.remove("hidden");
+    redoBtn.classList.remove("hidden");
+    skipBtn.classList.remove("hidden");
+    label.textContent = `Try these again (${state.wrongIndices.length}) — answers hidden`;
+    state.wrongIndices.forEach((i) => {
+      const q = state.questions[i];
+      const card = document.createElement("div");
+      card.className = "missed-card";
+      card.textContent = `${q.a} ${q.op} ${q.b} = ?`;
+      list.appendChild(card);
+    });
+  }
+}
+
+// ---------- Redo phase ----------
+function startRedo() {
+  state.phase = 'redo';
+  state.current = 0;
+  state.redoAnswers = {};
+  document.getElementById("screen-results1").classList.add("hidden");
+  document.getElementById("screen-practice").classList.remove("hidden");
+  renderCurrent();
+}
+
+// ---------- Final review ----------
+function showFinal() {
+  document.getElementById("progress-fill").style.width = "100%";
+  document.getElementById("screen-practice").classList.add("hidden");
+  document.getElementById("screen-final").classList.remove("hidden");
+
+  const total = state.questions.length;
+  const firstCorrect = state.questions.reduce((n, q, i) => n + (state.answers[i] === q.answer ? 1 : 0), 0);
+  const secondCorrect = state.questions.reduce((n, q, i) => {
+    if (state.answers[i] === q.answer) return n + 1;
+    return n + (state.redoAnswers[i] === q.answer ? 1 : 0);
+  }, 0);
+  const firstPct = Math.round((firstCorrect / total) * 100);
+  const secondPct = Math.round((secondCorrect / total) * 100);
+
+  document.getElementById("rf-first").textContent = `${firstCorrect}/${total}`;
+  document.getElementById("rf-first-pct").textContent = `${firstPct}%`;
+  document.getElementById("rf-second").textContent = `${secondCorrect}/${total}`;
+  document.getElementById("rf-second-pct").textContent = `${secondPct}%`;
+
+  const stillWrong = state.wrongIndices.filter(i => state.redoAnswers[i] !== state.questions[i].answer);
+  const fixedCount = state.wrongIndices.length - stillWrong.length;
+
+  const msg = document.getElementById("rf-message");
+  if (state.wrongIndices.length === 0)     msg.textContent = "🏆 Perfect on the first try!";
+  else if (stillWrong.length === 0)        msg.textContent = `🎉 You fixed all ${fixedCount} on the second try!`;
+  else if (fixedCount > 0)                 msg.textContent = `👏 Fixed ${fixedCount}, ${stillWrong.length} still to learn.`;
+  else                                     msg.textContent = "📚 Let's learn from these together.";
+
+  const list = document.getElementById("rf-review-list");
+  const label = document.getElementById("rf-review-label");
+  const wrap = document.getElementById("rf-review-wrap");
+  list.innerHTML = "";
+  if (stillWrong.length === 0) {
+    wrap.classList.add("hidden");
+  } else {
+    wrap.classList.remove("hidden");
+    label.textContent = `Still need practice (${stillWrong.length})`;
+    stillWrong.forEach((qi) => list.appendChild(buildReview(qi)));
+  }
+}
+
+function buildReview(qi) {
+  const q = state.questions[qi];
+  const a1 = state.answers[qi];
+  const a2 = state.redoAnswers[qi];
+  const fixed = a2 === q.answer;
+
+  const wrap = document.createElement("div");
+  wrap.className = "review-item " + (fixed ? "fixed" : "still-wrong");
+
+  const head = document.createElement("div");
+  head.className = "review-head";
+  const tagText = fixed ? "Fixed ✓" : "Let's learn this one";
+  head.innerHTML = `<span>${q.a} ${q.op} ${q.b}</span><span class="tag ${fixed ? 'good' : 'bad'}">${tagText}</span>`;
+  wrap.appendChild(head);
+
+  const attempts = document.createElement("div");
+  attempts.className = "attempts";
+  attempts.appendChild(attemptCard("First try", a1, a1 === q.answer));
+  if (a2 !== undefined) attempts.appendChild(attemptCard("Second try", a2, a2 === q.answer));
+  attempts.appendChild(attemptCard("Correct", q.answer, true));
+  wrap.appendChild(attempts);
+
+  const cols = document.createElement("div");
+  cols.className = "review-cols";
+  cols.appendChild(miniColumn(q));
+  wrap.appendChild(cols);
+
+  const explain = document.createElement("div");
+  explain.className = "step-explain";
+  explain.innerHTML = explainSteps(q);
+  wrap.appendChild(explain);
+
+  return wrap;
+}
+
+function attemptCard(label, value, isCorrect) {
+  const box = document.createElement("div");
+  box.className = "attempt";
+  const lbl = document.createElement("span");
+  lbl.className = "label";
+  lbl.textContent = label;
+  const val = document.createElement("span");
+  val.className = "value " + (isCorrect ? "good" : "bad");
+  val.textContent = value === null || value === undefined ? "—" : String(value);
+  box.appendChild(lbl);
+  box.appendChild(val);
+  return box;
+}
+
+function miniColumn(q) {
+  const box = document.createElement("div");
+  box.className = "review-col";
+  const lab = document.createElement("div");
+  lab.className = "label";
+  lab.textContent = "Column work";
+  box.appendChild(lab);
+
+  const mini = document.createElement("div");
+  mini.className = "mini-column";
+
+  const width = answerWidth(q);
+  const aD = digitsOf(q.a, width).join("");
+  const bD = digitsOf(q.b, width).join("");
+
+  const carryRow = document.createElement("div");
+  carryRow.className = "carry";
+  carryRow.textContent = q.op === "+" ? carriesAdd(q) : carriesSub(q);
+  mini.appendChild(carryRow);
+
+  const rA = document.createElement("div");
+  rA.textContent = "  " + aD;
+  mini.appendChild(rA);
+
+  const rB = document.createElement("div");
+  rB.textContent = q.op + " " + bD;
+  mini.appendChild(rB);
+
+  const hl = document.createElement("div");
+  hl.className = "hline-mini";
+  mini.appendChild(hl);
+
+  const ans = document.createElement("div");
+  ans.className = "correct-answer";
+  ans.textContent = "  " + String(q.answer).padStart(width, " ");
+  mini.appendChild(ans);
+
+  box.appendChild(mini);
+  return box;
+}
+
+function carriesAdd(q) {
+  const width = answerWidth(q);
+  const aD = String(q.a).padStart(width, "0").split("").map(Number);
+  const bD = String(q.b).padStart(width, "0").split("").map(Number);
+  let carry = 0;
+  const out = new Array(width).fill(" ");
+  for (let i = width - 1; i >= 0; i--) {
+    const sum = aD[i] + bD[i] + carry;
+    const newCarry = Math.floor(sum / 10);
+    if (newCarry > 0 && i - 1 >= 0) out[i - 1] = String(newCarry);
+    carry = newCarry;
+  }
+  return "  " + out.join("");
+}
+
+function carriesSub(q) {
+  const width = answerWidth(q);
+  const aD = String(q.a).padStart(width, "0").split("").map(Number);
+  const bD = String(q.b).padStart(width, "0").split("").map(Number);
+  const out = new Array(width).fill(" ");
+  for (let i = width - 1; i >= 0; i--) {
+    if (aD[i] < bD[i]) {
+      out[i] = "*";
+      let j = i - 1;
+      while (j >= 0 && aD[j] === 0) { aD[j] = 9; j--; }
+      if (j >= 0) aD[j] -= 1;
+      aD[i] += 10;
+    }
+  }
+  return "  " + out.join("");
+}
+
+function explainSteps(q) {
+  const width = answerWidth(q);
+  const aD = String(q.a).padStart(width, "0").split("").map(Number);
+  const bD = String(q.b).padStart(width, "0").split("").map(Number);
+  const placeNames = ["thousands", "hundreds", "tens", "ones"];
+  const visible = placeNames.slice(placeNames.length - width);
+
+  const steps = [];
+  if (q.op === "+") {
+    let carry = 0;
+    for (let i = width - 1; i >= 0; i--) {
+      const sum = aD[i] + bD[i] + carry;
+      const digit = sum % 10;
+      const newCarry = Math.floor(sum / 10);
+      let line = `<b>${visible[i]}:</b> ${aD[i]} + ${bD[i]}`;
+      if (carry) line += ` + ${carry} (carry)`;
+      line += ` = ${sum}`;
+      line += newCarry ? ` → write <b>${digit}</b>, carry <b>${newCarry}</b>` : ` → write <b>${digit}</b>`;
+      steps.push(line);
+      carry = newCarry;
+    }
+  } else {
+    const a = aD.slice(), b = bD.slice();
+    for (let i = width - 1; i >= 0; i--) {
+      let borrowed = false;
+      if (a[i] < b[i]) {
+        let j = i - 1;
+        while (j >= 0 && a[j] === 0) { a[j] = 9; j--; }
+        if (j >= 0) a[j] -= 1;
+        a[i] += 10;
+        borrowed = true;
+      }
+      const digit = a[i] - b[i];
+      let line = `<b>${visible[i]}:</b> `;
+      line += borrowed ? `borrow → ${a[i]} - ${b[i]} = <b>${digit}</b>` : `${a[i]} - ${b[i]} = <b>${digit}</b>`;
+      steps.push(line);
+    }
+  }
+  return steps.reverse().join("<br>");
+}
+
+// ---------- Wiring ----------
+document.querySelectorAll("#count-row .chip").forEach(btn => {
+  btn.addEventListener("click", () => {
+    document.querySelectorAll("#count-row .chip").forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+    state.count = parseInt(btn.dataset.count, 10);
+    document.getElementById("btn-start").disabled = false;
+  });
+});
+
+document.getElementById("btn-start").addEventListener("click", () => {
+  state.questions = generateQuestions(state.count);
+  state.answers = new Array(state.questions.length).fill(null);
+  state.redoAnswers = {};
+  state.current = 0;
+  state.phase = 'practice';
+  state.wrongIndices = [];
+  document.getElementById("screen-home").classList.add("hidden");
+  document.getElementById("screen-practice").classList.remove("hidden");
+  document.getElementById("screen-results1").classList.add("hidden");
+  document.getElementById("screen-final").classList.add("hidden");
+  renderCurrent();
+});
+
+document.getElementById("btn-quit").addEventListener("click", () => {
+  if (confirm("Stop practicing and go back home?")) goHome();
+});
+
+document.getElementById("btn-redo").addEventListener("click", startRedo);
+document.getElementById("btn-home1").addEventListener("click", goHome);
+
+document.getElementById("btn-again").addEventListener("click", () => {
+  document.getElementById("btn-start").click();
+});
+document.getElementById("btn-home2").addEventListener("click", goHome);
+
+function goHome() {
+  document.getElementById("screen-practice").classList.add("hidden");
+  document.getElementById("screen-results1").classList.add("hidden");
+  document.getElementById("screen-final").classList.add("hidden");
+  document.getElementById("screen-home").classList.remove("hidden");
+}
+
+// preselect 25 by default
+document.querySelector('#count-row .chip[data-count="25"]').click();
+</script>
+</body>
+</html>
