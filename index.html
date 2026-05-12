@@ -633,6 +633,12 @@
       <button class="chip" data-count="100">100</button>
     </div>
 
+    <div class="section-label">Carry &amp; borrow</div>
+    <div class="count-row" id="carry-row">
+      <button class="chip active" data-carry="1">With carry/borrow</button>
+      <button class="chip" data-carry="0">Without</button>
+    </div>
+
     <button id="btn-start" class="btn-primary" disabled>Let's go! 🚀</button>
     <button id="btn-bank" class="btn-secondary" disabled>Generate question bank 📋</button>
   </section>
@@ -784,6 +790,7 @@ const audio = {
 
 const state = {
   count: null,
+  allowCarry: true,   // true = normal (may have carry/borrow), false = forced no-carry/no-borrow
   questions: [],      // [{a,b,op,digits,answer}]
   answers: [],        // first-round answers (null if blank)
   redoAnswers: {},    // {index: number}
@@ -823,13 +830,61 @@ function genOne() {
   return { a, b, op, digits, answer };
 }
 
-function generateQuestions(count) {
+function pickDigitCounts() {
+  const r = Math.random();
+  if (r < 0.40)      return [2, 2];
+  if (r < 0.80)      return [3, 3];
+  return Math.random() < 0.5 ? [3, 2] : [2, 3];
+}
+
+// Per-digit generator that guarantees no carry (for +) or no borrow (for -).
+function genOneNoCarryBorrow() {
+  let [dA, dB] = pickDigitCounts();
+  const op = Math.random() < 0.5 ? "+" : "-";
+  // Subtraction needs a >= b; with mixed digit counts ensure A has more digits.
+  if (op === "-" && dA < dB) [dA, dB] = [dB, dA];
+  const digits = Math.max(dA, dB);
+
+  const aD = new Array(digits).fill(0);
+  const bD = new Array(digits).fill(0);
+
+  for (let i = 0; i < digits; i++) {
+    const aActive  = i >= digits - dA;
+    const bActive  = i >= digits - dB;
+    const aLeading = aActive && i === digits - dA;
+    const bLeading = bActive && i === digits - dB;
+    const aMin = aLeading ? 1 : 0;
+    let   aMax = aActive  ? 9 : 0;
+    const bMin = bLeading ? 1 : 0;
+    let   bMax = bActive  ? 9 : 0;
+
+    if (op === "+") {
+      aMax = Math.min(aMax, 9 - bMin);
+      const aPick = randInt(aMin, aMax);
+      const bPick = randInt(bMin, Math.min(bMax, 9 - aPick));
+      aD[i] = aPick; bD[i] = bPick;
+    } else {
+      bMax = Math.min(bMax, aMax);
+      const bPick = randInt(bMin, bMax);
+      const aPick = randInt(Math.max(aMin, bPick), aMax);
+      aD[i] = aPick; bD[i] = bPick;
+    }
+  }
+
+  const a = parseInt(aD.join(""), 10);
+  const b = parseInt(bD.join(""), 10);
+  const answer = op === "+" ? a + b : a - b;
+  return { a, b, op, digits, answer };
+}
+
+function generateQuestions(count, allowCarry) {
+  const gen = allowCarry === false ? genOneNoCarryBorrow : genOne;
   const seen = new Set();
   const out = [];
   let safety = 0;
   while (out.length < count && safety < count * 30) {
     safety++;
-    const q = genOne();
+    const q = gen();
     const key = `${q.a}${q.op}${q.b}`;
     if (seen.has(key)) continue;
     seen.add(key);
@@ -1297,8 +1352,16 @@ document.querySelectorAll("#count-row .chip").forEach(btn => {
   });
 });
 
+document.querySelectorAll("#carry-row .chip").forEach(btn => {
+  btn.addEventListener("click", () => {
+    document.querySelectorAll("#carry-row .chip").forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+    state.allowCarry = btn.dataset.carry === "1";
+  });
+});
+
 document.getElementById("btn-start").addEventListener("click", () => {
-  state.questions = generateQuestions(state.count);
+  state.questions = generateQuestions(state.count, state.allowCarry);
   state.answers = new Array(state.questions.length).fill(null);
   state.redoAnswers = {};
   state.current = 0;
@@ -1409,7 +1472,7 @@ const bank = {
       this.showAnswers ? "👁 Hide answers" : "👁 Show answers";
   },
   open(count) {
-    this.questions = generateQuestions(count);
+    this.questions = generateQuestions(count, state.allowCarry);
     this.showAnswers = true;
     document.getElementById("screen-home").classList.add("hidden");
     document.getElementById("screen-bank").classList.remove("hidden");
@@ -1425,7 +1488,7 @@ const bank = {
 document.getElementById("btn-bank").addEventListener("click", () => bank.open(state.count));
 document.getElementById("btn-home-bank").addEventListener("click", goHome);
 document.getElementById("btn-bank-regen").addEventListener("click", () => {
-  bank.questions = generateQuestions(state.count);
+  bank.questions = generateQuestions(state.count, state.allowCarry);
   bank.render();
 });
 document.getElementById("btn-bank-toggle").addEventListener("click", () => {

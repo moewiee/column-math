@@ -14,6 +14,10 @@ No build step, no dependencies, no backend. Open `index.html` and go.
   3-digit). Operation is 50/50 addition / subtraction. Subtraction always
   produces a non-negative result.
 - **Session sizes**: 25, 50, or 100 questions.
+- **Carry/borrow toggle**: pick "With carry/borrow" (normal — each
+  question may or may not require carrying / borrowing) or "Without"
+  (every digit pair is guaranteed not to carry on `+` and not to borrow
+  on `-`, useful as a first step before introducing regrouping).
 - **On-screen numpad** (works on tablet, phone, and desktop). Physical
   keyboard also works — digits, Backspace, Enter, arrow keys.
 - **Column-style answer entry**: one box per digit, focus starts at the
