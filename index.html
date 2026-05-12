@@ -492,6 +492,61 @@
 
   .hidden { display: none !important; }
 
+  /* Question bank */
+  .bank-toolbar {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+  }
+  .bank-toolbar button {
+    flex: 1;
+    min-width: 100px;
+    padding: 10px 14px;
+    border: 2px solid var(--border);
+    border-radius: 12px;
+    background: white;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+  .bank-toolbar button:hover { border-color: var(--primary); color: var(--primary); }
+  .bank-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 10px;
+  }
+  .bank-item {
+    background: white;
+    border: 2px solid var(--border);
+    border-radius: 12px;
+    padding: 10px 12px;
+    font-family: 'Roboto Mono', ui-monospace, monospace;
+    font-size: 16px;
+    font-weight: 600;
+    text-align: center;
+  }
+  .bank-item .qnum {
+    display: block;
+    font-family: 'Fredoka', sans-serif;
+    font-size: 11px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 4px;
+  }
+  .bank-item .ans { color: var(--primary-dark); }
+
+  @media print {
+    body { background: #fff; padding: 0; }
+    .app { box-shadow: none; padding: 0; border-radius: 0; max-width: none; }
+    .app::before, .mute-toggle, .bank-toolbar, #btn-home-bank { display: none !important; }
+    .bank-grid { grid-template-columns: repeat(4, 1fr); gap: 8px; }
+    .bank-item { border-color: #ccc; break-inside: avoid; }
+  }
+
   @media (max-width: 520px) {
     .app { padding: 20px; border-radius: 22px; }
     h1 { font-size: 26px; }
@@ -520,6 +575,24 @@
     </div>
 
     <button id="btn-start" class="btn-primary" disabled>Let's go! 🚀</button>
+    <button id="btn-bank" class="btn-secondary" disabled>Generate question bank 📋</button>
+  </section>
+
+  <!-- QUESTION BANK -->
+  <section id="screen-bank" class="hidden">
+    <h1><span class="emoji">📋</span> Question Bank</h1>
+    <p class="subtitle" id="bank-subtitle">— questions with answers</p>
+
+    <div class="bank-toolbar">
+      <button id="btn-bank-regen">🔄 Regenerate</button>
+      <button id="btn-bank-toggle">👁 Hide answers</button>
+      <button id="btn-bank-copy">📋 Copy</button>
+      <button id="btn-bank-print">🖨 Print</button>
+    </div>
+
+    <div class="bank-grid" id="bank-grid"></div>
+
+    <button id="btn-home-bank" class="btn-secondary">Back to home</button>
   </section>
 
   <!-- PRACTICE / REDO -->
@@ -1161,6 +1234,7 @@ document.querySelectorAll("#count-row .chip").forEach(btn => {
     btn.classList.add("active");
     state.count = parseInt(btn.dataset.count, 10);
     document.getElementById("btn-start").disabled = false;
+    document.getElementById("btn-bank").disabled = false;
   });
 });
 
@@ -1194,8 +1268,65 @@ function goHome() {
   document.getElementById("screen-practice").classList.add("hidden");
   document.getElementById("screen-results1").classList.add("hidden");
   document.getElementById("screen-final").classList.add("hidden");
+  document.getElementById("screen-bank").classList.add("hidden");
   document.getElementById("screen-home").classList.remove("hidden");
 }
+
+// ---------- Question bank ----------
+const bank = {
+  questions: [],
+  showAnswers: true,
+  render() {
+    const grid = document.getElementById("bank-grid");
+    grid.innerHTML = "";
+    this.questions.forEach((q, i) => {
+      const item = document.createElement("div");
+      item.className = "bank-item";
+      const tail = this.showAnswers ? `<span class="ans">${q.answer}</span>` : "___";
+      item.innerHTML = `<span class="qnum">Q${i + 1}</span>${q.a} ${q.op} ${q.b} = ${tail}`;
+      grid.appendChild(item);
+    });
+    document.getElementById("bank-subtitle").textContent =
+      `${this.questions.length} questions ${this.showAnswers ? "with answers" : "— answer key hidden"}`;
+    document.getElementById("btn-bank-toggle").textContent =
+      this.showAnswers ? "👁 Hide answers" : "👁 Show answers";
+  },
+  open(count) {
+    this.questions = generateQuestions(count);
+    this.showAnswers = true;
+    document.getElementById("screen-home").classList.add("hidden");
+    document.getElementById("screen-bank").classList.remove("hidden");
+    this.render();
+  },
+  asText() {
+    return this.questions
+      .map((q, i) => `${i + 1}. ${q.a} ${q.op} ${q.b} = ${q.answer}`)
+      .join("\n");
+  },
+};
+
+document.getElementById("btn-bank").addEventListener("click", () => bank.open(state.count));
+document.getElementById("btn-home-bank").addEventListener("click", goHome);
+document.getElementById("btn-bank-regen").addEventListener("click", () => {
+  bank.questions = generateQuestions(state.count);
+  bank.render();
+});
+document.getElementById("btn-bank-toggle").addEventListener("click", () => {
+  bank.showAnswers = !bank.showAnswers;
+  bank.render();
+});
+document.getElementById("btn-bank-print").addEventListener("click", () => window.print());
+document.getElementById("btn-bank-copy").addEventListener("click", async () => {
+  const btn = document.getElementById("btn-bank-copy");
+  const original = btn.textContent;
+  try {
+    await navigator.clipboard.writeText(bank.asText());
+    btn.textContent = "✓ Copied!";
+  } catch {
+    btn.textContent = "Copy failed";
+  }
+  setTimeout(() => { btn.textContent = original; }, 1500);
+});
 
 // Mute toggle (persisted)
 const savedMute = localStorage.getItem("mathPracticeMuted") === "1";
