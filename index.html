@@ -539,12 +539,71 @@
   }
   .bank-item .ans { color: var(--primary-dark); }
 
+  /* Print-only column layout (built into every bank item, hidden on screen) */
+  .bank-print { display: none; }
+  .bank-print .bp-row {
+    display: flex;
+    justify-content: flex-end;
+    gap: 2px;
+  }
+  .bank-print .bp-cell {
+    width: 22px;
+    height: 22px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Roboto Mono', ui-monospace, monospace;
+    font-size: 16px;
+    font-weight: 600;
+    color: #1e293b;
+  }
+  .bank-print .bp-cell.op { color: #475569; }
+  .bank-print .bp-box {
+    width: 22px;
+    height: 22px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Roboto Mono', ui-monospace, monospace;
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--primary-dark);
+  }
+  .bank-print .bp-hline {
+    border-bottom: 2px solid #1e293b;
+    margin: 3px 0;
+  }
+
   @media print {
+    @page { margin: 12mm; }
     body { background: #fff; padding: 0; }
     .app { box-shadow: none; padding: 0; border-radius: 0; max-width: none; }
     .app::before, .mute-toggle, .bank-toolbar, #btn-home-bank { display: none !important; }
-    .bank-grid { grid-template-columns: repeat(4, 1fr); gap: 8px; }
-    .bank-item { border-color: #ccc; break-inside: avoid; }
+    #screen-bank h1, #screen-bank .subtitle { display: none; }
+    .bank-grid {
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8mm;
+    }
+    .bank-item {
+      border: none;
+      break-inside: avoid;
+      padding: 0;
+      text-align: center;
+      min-height: 42mm;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: transparent;
+    }
+    .bank-item:nth-child(20n) { break-after: page; }
+    .bank-item .bank-inline, .bank-item .qnum { display: none; }
+    .bank-item .bank-print { display: inline-block; }
+    .bank-print .bp-cell, .bank-print .bp-box {
+      width: 28px;
+      height: 30px;
+      font-size: 20px;
+    }
+    .bank-print .bp-hline { margin: 5px 0; }
   }
 
   @media (max-width: 520px) {
@@ -1273,6 +1332,52 @@ function goHome() {
 }
 
 // ---------- Question bank ----------
+function buildBankPrintCard(q, showAnswer) {
+  const card = document.createElement("div");
+  card.className = "bank-print";
+  const width = answerWidth(q);
+  card.appendChild(bankPrintRow("", digitsOf(q.a, width)));
+  card.appendChild(bankPrintRow(q.op, digitsOf(q.b, width)));
+
+  const hline = document.createElement("div");
+  hline.className = "bp-hline";
+  card.appendChild(hline);
+
+  const ansRow = document.createElement("div");
+  ansRow.className = "bp-row";
+  const opCell = document.createElement("span");
+  opCell.className = "bp-cell op";
+  ansRow.appendChild(opCell);
+  const ansDigits = showAnswer ? digitsOf(q.answer, width) : null;
+  for (let i = 0; i < width; i++) {
+    const box = document.createElement("span");
+    box.className = "bp-box";
+    if (ansDigits) {
+      const d = ansDigits[i];
+      if (d !== " ") box.textContent = d;
+    }
+    ansRow.appendChild(box);
+  }
+  card.appendChild(ansRow);
+  return card;
+}
+
+function bankPrintRow(op, digits) {
+  const row = document.createElement("div");
+  row.className = "bp-row";
+  const opCell = document.createElement("span");
+  opCell.className = "bp-cell op";
+  opCell.textContent = op;
+  row.appendChild(opCell);
+  digits.forEach(d => {
+    const cell = document.createElement("span");
+    cell.className = "bp-cell";
+    if (d !== " ") cell.textContent = d;
+    row.appendChild(cell);
+  });
+  return row;
+}
+
 const bank = {
   questions: [],
   showAnswers: true,
@@ -1282,8 +1387,20 @@ const bank = {
     this.questions.forEach((q, i) => {
       const item = document.createElement("div");
       item.className = "bank-item";
+
+      const num = document.createElement("span");
+      num.className = "qnum";
+      num.textContent = `Q${i + 1}`;
+      item.appendChild(num);
+
+      const inline = document.createElement("span");
+      inline.className = "bank-inline";
       const tail = this.showAnswers ? `<span class="ans">${q.answer}</span>` : "___";
-      item.innerHTML = `<span class="qnum">Q${i + 1}</span>${q.a} ${q.op} ${q.b} = ${tail}`;
+      inline.innerHTML = `${q.a} ${q.op} ${q.b} = ${tail}`;
+      item.appendChild(inline);
+
+      item.appendChild(buildBankPrintCard(q, this.showAnswers));
+
       grid.appendChild(item);
     });
     document.getElementById("bank-subtitle").textContent =

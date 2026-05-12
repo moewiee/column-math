@@ -26,6 +26,10 @@ No build step, no dependencies, no backend. Open `index.html` and go.
   3. Final screen shows 1st-try and 2nd-try scores. Only questions still
      wrong after the 2nd attempt are revealed with the correct answer,
      column work (carries / borrows), and a step-by-step explanation.
+- **Question bank mode**: skip the practice flow and generate a printable
+  list of problems with answers. Toolbar supports regenerate, toggle
+  answer key, copy as plain text, and print (with a print-specific
+  layout that hides chrome and lays out the grid 4-wide).
 
 ## Run it
 
