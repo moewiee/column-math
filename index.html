@@ -26,6 +26,7 @@
   }
   * { box-sizing: border-box; }
   html, body { margin: 0; padding: 0; }
+  button, input { touch-action: manipulation; }
   body {
     font-family: 'Fredoka', system-ui, -apple-system, sans-serif;
     color: var(--ink);
@@ -59,6 +60,26 @@
     border-radius: 50%;
     pointer-events: none;
   }
+  .mute-toggle {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    border: 2px solid var(--border);
+    background: white;
+    font-size: 20px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2;
+    transition: all 0.15s ease;
+    padding: 0;
+  }
+  .mute-toggle:hover { border-color: var(--primary); }
+  .mute-toggle.muted { background: #f1f5f9; color: var(--muted); }
   h1 {
     margin: 0 0 4px;
     font-size: 36px;
@@ -484,6 +505,7 @@
 </head>
 <body>
 <div class="app">
+  <button id="mute-toggle" class="mute-toggle" aria-label="Toggle sound" title="Toggle sound">🔊</button>
 
   <!-- HOME -->
   <section id="screen-home">
@@ -578,6 +600,55 @@
 
 <script>
 "use strict";
+
+// ---------- Audio (Web Audio API, no assets) ----------
+const audio = {
+  ctx: null,
+  muted: false,
+  ensure() {
+    if (!this.ctx) {
+      const Ctor = window.AudioContext || window.webkitAudioContext;
+      if (!Ctor) return null;
+      this.ctx = new Ctor();
+    }
+    if (this.ctx.state === "suspended") this.ctx.resume();
+    return this.ctx;
+  },
+  blip(freq, dur, opts) {
+    if (this.muted) return;
+    const ctx = this.ensure(); if (!ctx) return;
+    const o = opts || {};
+    const t0 = ctx.currentTime;
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = o.type || "sine";
+    osc.frequency.setValueAtTime(freq, t0);
+    if (o.endFreq) osc.frequency.exponentialRampToValueAtTime(o.endFreq, t0 + dur);
+    const peak = o.gain != null ? o.gain : 0.12;
+    gain.gain.setValueAtTime(0.0001, t0);
+    gain.gain.linearRampToValueAtTime(peak, t0 + 0.005);
+    gain.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+    osc.connect(gain).connect(ctx.destination);
+    osc.start(t0); osc.stop(t0 + dur + 0.05);
+  },
+  tap()    { this.blip(660, 0.05, { type: "square",   gain: 0.07 }); },
+  back()   { this.blip(320, 0.07, { type: "square",   gain: 0.07 }); },
+  submit() {
+    this.blip(660, 0.08, { type: "triangle", gain: 0.12 });
+    setTimeout(() => this.blip(990, 0.10, { type: "triangle", gain: 0.12 }), 70);
+  },
+  chime() {
+    // happy C-major arpeggio C5-E5-G5-C6
+    const notes = [523.25, 659.25, 783.99, 1046.50];
+    notes.forEach((f, i) => setTimeout(() => this.blip(f, 0.28, { type: "triangle", gain: 0.16 }), i * 130));
+  },
+  setMuted(m) {
+    this.muted = m;
+    const btn = document.getElementById("mute-toggle");
+    btn.textContent = m ? "🔇" : "🔊";
+    btn.classList.toggle("muted", m);
+  },
+};
 
 const state = {
   count: null,
@@ -740,9 +811,9 @@ function backspace() {
 }
 
 function onPhysicalKeydown(e) {
-  if (/^[0-9]$/.test(e.key)) { e.preventDefault(); typeDigit(e.key); return; }
-  if (e.key === "Backspace") { e.preventDefault(); backspace(); return; }
-  if (e.key === "Enter") { e.preventDefault(); submitAnswer(); return; }
+  if (/^[0-9]$/.test(e.key)) { e.preventDefault(); audio.tap(); typeDigit(e.key); return; }
+  if (e.key === "Backspace") { e.preventDefault(); audio.back(); backspace(); return; }
+  if (e.key === "Enter") { e.preventDefault(); audio.submit(); submitAnswer(); return; }
   if (e.key === "ArrowLeft" || e.key === "ArrowRight") {
     e.preventDefault();
     const inputs = currentInputs();
@@ -759,9 +830,9 @@ document.getElementById("numpad").addEventListener("click", (e) => {
   const btn = e.target.closest("button");
   if (!btn) return;
   const k = btn.dataset.key;
-  if (k === "back") backspace();
-  else if (k === "submit") submitAnswer();
-  else typeDigit(k);
+  if (k === "back")        { audio.back();   backspace(); }
+  else if (k === "submit") { audio.submit(); submitAnswer(); }
+  else                     { audio.tap();    typeDigit(k); }
 });
 
 // ---------- Answer reading & submission ----------
@@ -825,6 +896,7 @@ function showResults1() {
   document.getElementById("progress-fill").style.width = "100%";
   document.getElementById("screen-practice").classList.add("hidden");
   document.getElementById("screen-results1").classList.remove("hidden");
+  audio.chime();
 
   computeWrongIndices();
   const total = state.questions.length;
@@ -881,6 +953,7 @@ function showFinal() {
   document.getElementById("progress-fill").style.width = "100%";
   document.getElementById("screen-practice").classList.add("hidden");
   document.getElementById("screen-final").classList.remove("hidden");
+  audio.chime();
 
   const total = state.questions.length;
   const firstCorrect = state.questions.reduce((n, q, i) => n + (state.answers[i] === q.answer ? 1 : 0), 0);
@@ -1123,6 +1196,15 @@ function goHome() {
   document.getElementById("screen-final").classList.add("hidden");
   document.getElementById("screen-home").classList.remove("hidden");
 }
+
+// Mute toggle (persisted)
+const savedMute = localStorage.getItem("mathPracticeMuted") === "1";
+audio.setMuted(savedMute);
+document.getElementById("mute-toggle").addEventListener("click", () => {
+  audio.setMuted(!audio.muted);
+  localStorage.setItem("mathPracticeMuted", audio.muted ? "1" : "0");
+  if (!audio.muted) audio.tap(); // confirm sound is back
+});
 
 // preselect 25 by default
 document.querySelector('#count-row .chip[data-count="25"]').click();
